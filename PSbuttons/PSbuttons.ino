@@ -3,13 +3,13 @@
 
 
 void setup() {
-  Serial.begin(921600);
-  ps5.begin("1a:2b:3c:01:01:01"); //replace 
+  Serial.begin(115200);
+  ps5.begin("D0:BC:C1:98:2E:F3"); //replace 
   Serial.println("Ready.");
 }
 
 void loop() {
-  if (ps5.isConnected())  { 
+  if (ps5.isConnected()==false)  { 
     Serial.println("PS5 controller not found");
     delay(300);
 
