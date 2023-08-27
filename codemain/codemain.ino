@@ -49,16 +49,37 @@ void setup() {
 
 void loop() {
   mpu6050.update();
-  
-  if(millis() - timer > 1000){
         float angle=mpu6050.getAngleZ();
-//        Serial.print("\tgyroAngleZ : ");Serial.print(mpu6050.getGyroAngleZ());
-//        Serial.print("\tangleZ : ");Serial.print(angle);
-//        Serial.print("\n");
-         timer = millis();
+        Serial.print("\tangleZ : ");
+        Serial.print(angle);
+        error= 0.0 - angle;
+    if( -1< error && error < 1){  
+    error = 0;
+     }
+    else if( 89 < error && error < 91){
+       error = 90;
+      }
+     else if(-91 < error && error < -89){
+       error = -90;
+      }  
+     else{
+      error= 0.0 - angle;
+      }    
+      pid();
 
-  error=0.0-angle;
-  
+/////// SQUARE PATH  ///////////// 
+                               ///
+if(millis()-timer>5000){       ///
+  forward();                   ///    
+  error=90;                    ///                 
+  pid();                       ///
+  timer = millis();            ///
+  Serial.println("forward");   ///
+}                              ///
+//////////////////////////////////
+}
+///////////   PID  ///////////////
+ void pid(){
     float derivative = error - prerror;
 
     prerror = error;
@@ -69,13 +90,8 @@ void loop() {
     Serial.print(error);
     Serial.print("\tPID Output: ");
     Serial.println(pidOutput);  /////////NEED CHECKING<<<<<<<<<<<
-  }
-  delay(1000);
   motorspeed(pidOutput);
-
-  
-}
-
+ }
 ////////MOTOR FUNCTIONS\\\\\\\\\\\\\\\\\
 
 void forward()
@@ -143,6 +159,7 @@ analogWrite(motorCpwm, rightMotorSpeed);
 analogWrite(motorDpwm, rightMotorSpeed);
 Serial.println("Right");
 }
+
 void stop()
 {
 digitalWrite(motorApwm, LOW);
@@ -158,6 +175,7 @@ analogWrite(motorBpwm, leftMotorSpeed);
 analogWrite(motorCpwm, rightMotorSpeed);
 analogWrite(motorDpwm, rightMotorSpeed);
 }
+
 /*
  *  /////////MOTOR FUNCTIONS END\\\\\\\\\\\ 
  * 
@@ -166,28 +184,28 @@ analogWrite(motorDpwm, rightMotorSpeed);
 void motorspeed(float pidOutput){
    leftMotorSpeed = constrain(255 + pidOutput, 0, 255);
    rightMotorSpeed = constrain(255 - pidOutput, 0, 255);
-  if (pidOutput > 0) {
-digitalWrite(motorApwm, LOW);
-digitalWrite(motorBpwm, LOW);
-digitalWrite(motorCpwm, HIGH);
-digitalWrite(motorDpwm, HIGH);
-digitalWrite(motorAdir, HIGH);
-digitalWrite(motorBdir, HIGH);
-digitalWrite(motorCdir, LOW);
-digitalWrite(motorDdir, LOW);
-    Serial.println("Right");
-  }
-  if(pidOutput < 0){
-digitalWrite(motorApwm, HIGH);
-digitalWrite(motorBpwm, HIGH);
-digitalWrite(motorCpwm, LOW);
-digitalWrite(motorDpwm, LOW);
-digitalWrite(motorAdir, LOW);
-digitalWrite(motorBdir, LOW);
-digitalWrite(motorCdir, HIGH);
-digitalWrite(motorDdir, HIGH);
-    Serial.println("left");
-  }
+//  if (pidOutput > 0) {
+////digitalWrite(motorApwm, LOW);
+////digitalWrite(motorBpwm, LOW);
+////digitalWrite(motorCpwm, HIGH);
+////digitalWrite(motorDpwm, HIGH);
+////digitalWrite(motorAdir, HIGH);
+////digitalWrite(motorBdir, HIGH);
+////digitalWrite(motorCdir, LOW);
+////digitalWrite(motorDdir, LOW);
+//    Serial.println("Right");
+//  }
+//  if(pidOutput < 0){
+////digitalWrite(motorApwm, HIGH);
+////digitalWrite(motorBpwm, HIGH);
+////digitalWrite(motorCpwm, LOW);
+////digitalWrite(motorDpwm, LOW);
+////digitalWrite(motorAdir, LOW);
+////digitalWrite(motorBdir, LOW);
+////digitalWrite(motorCdir, HIGH);
+////digitalWrite(motorDdir, HIGH);
+//    Serial.println("left");
+//  }
 analogWrite(motorApwm, leftMotorSpeed);
 analogWrite(motorBpwm, leftMotorSpeed);
 analogWrite(motorCpwm, rightMotorSpeed);
