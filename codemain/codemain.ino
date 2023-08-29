@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <MPU6050_tockn.h>
 #include <Wire.h>
-
+#include <ps5Controller.h>
 /////  MOTOR PINS  \\\\\\
 
 const int motorApwm = 13; //left
@@ -32,7 +32,9 @@ const float Kd = 0.1;
 ////    PID ENDS  \\\\
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  ps5.begin("D0:BC:C1:98:2E:F3"); //replace
+  Serial.println("Ready.");
   Wire.begin();
   mpu6050.begin();
   mpu6050.calcGyroOffsets(true);
@@ -48,41 +50,100 @@ void setup() {
 }
 
 void loop() {
+  if (ps5.isConnected() == false)  {
+    Serial.println("PS5 controller not found");
+    delay(300);
+  }
   mpu6050.update();
   float angle = mpu6050.getAngleZ();
-  if(millis()-timer>1000){
-  Serial.print("\tangleZ : ");
-  Serial.print(angle);
-  timer=millis();
-  }
-  error = 0.0 - angle;
-  if ( -1 < error && error < 1) {
-    error = 0;
-  }
-  else if ( 89 < error && error < 91) {
-    error = 90;
-  }
-  else if (-91 < error && error < -89) {
-    error = -90;
-  }
-  else {
+  if (millis() - timer > 1000) {
+    Serial.print("\tangleZ : ");
+    Serial.print(angle);
+
     error = 0.0 - angle;
+    if ( -1 < error && error < 1) {
+      error = 0;
+    }
+    else if ( 89 < error && error < 91) {
+      error = 90;
+    }
+    else if (-91 < error && error < -89) {
+      error = -90;
+    }
+    else {
+      error = 0.0 - angle;
+    }
+
+    pid();
+
+
+    timer = millis();
+
   }
 
-  pid();
 
-  /////// SQUARE PATH  /////////////
-  ///
-  //if(millis()-timer>5000){       ///
-  forward();                   ///
-  //  error=90;                    ///
-  //  pid();                       ///
-  //  timer = millis();            ///
-  //  Serial.println("forward");   ///
-  //}                              ///
-  //////////////////////////////////
+/////////////////////////////////////////////////////////////////
+while (ps5.isConnected() == true) {
+  if (ps5.Right()) Serial.println("Right Button");
+  if (ps5.Down()) Serial.println("Down Button");
+  if (ps5.Up()) Serial.println("Up Button");
+  if (ps5.Left()) Serial.println("Left Button");
 
+  if (ps5.Square()) Serial.println("Square Button");
+  if (ps5.Cross()) Serial.println("Cross Button");
+  if (ps5.Circle()) Serial.println("Circle Button");
+  if (ps5.Triangle()) Serial.println("Triangle Button");
+
+  if (ps5.UpRight()) Serial.println("Up Right");
+  if (ps5.DownRight()) Serial.println("Down Right");
+  if (ps5.UpLeft()) Serial.println("Up Left");
+  if (ps5.DownLeft()) Serial.println("Down Left");
+
+  if (ps5.L1()) Serial.println("L1 Button");
+  if (ps5.R1()) Serial.println("R1 Button");
+
+  if (ps5.Share()) Serial.println("Share Button");
+  if (ps5.Options()) Serial.println("Options Button");
+  if (ps5.L3()) Serial.println("L3 Button");
+  if (ps5.R3()) Serial.println("R3 Button");
+
+  if (ps5.PSButton()) Serial.println("PS Button");
+  if (ps5.Touchpad()) Serial.println("Touch Pad Button");
+
+  if (ps5.L2()) {
+    Serial.printf("L2 button at %d\n", ps5.L2Value());
+  }
+  if (ps5.R2()) {
+    Serial.printf("R2 button at %d\n", ps5.R2Value());
+  }
+
+  if (ps5.LStickX()) {
+    Serial.printf("Left Stick x at %d\n", ps5.LStickX());
+  }
+  if (ps5.LStickY()) {
+    Serial.printf("Left Stick y at %d\n", ps5.LStickY());
+  }
+  if (ps5.RStickX()) {
+    Serial.printf("Right Stick x at %d\n", ps5.RStickX());
+  }
+  if (ps5.RStickY()) {
+    Serial.printf("Right Stick y at %d\n", ps5.RStickY());
+  }
+
+  if (ps5.Charging()) Serial.println("The controller is charging"); //doesn't work
+  if (ps5.Audio()) Serial.println("The controller has headphones attached"); //doesn't work
+  if (ps5.Mic()) Serial.println("The controller has a mic attached"); //doesn't work
+
+  Serial.printf("Battery Level : %d\n", ps5.Battery()); //doesn't work
+
+  Serial.println();
+
+  delay(300);
 }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 ///////////   PID  ///////////////
 void pid() {
   float derivative = error - prerror;
@@ -105,10 +166,10 @@ void pid() {
 
 void forward()
 {
-//  digitalWrite(motorApwm, HIGH);
-//  digitalWrite(motorBpwm, HIGH);
-//  digitalWrite(motorCpwm, HIGH);
-//  digitalWrite(motorDpwm, HIGH);
+  //  digitalWrite(motorApwm, HIGH);
+  //  digitalWrite(motorBpwm, HIGH);
+  //  digitalWrite(motorCpwm, HIGH);
+  //  digitalWrite(motorDpwm, HIGH);
   digitalWrite(motorAdir, LOW);
   digitalWrite(motorBdir, LOW);
   digitalWrite(motorCdir, LOW);
@@ -190,31 +251,12 @@ void stop()
 
 
 */
+////////////////   PID   \\\\\\\\\\\\\\\\\\\\\
+
 void motorspeed(float pidOutput) {
   leftMotorSpeed = constrain(255 + pidOutput, 0, 255);
   rightMotorSpeed = constrain(255 - pidOutput, 0, 255);
-  //  if (pidOutput > 0) {
-  ////digitalWrite(motorApwm, LOW);
-  ////digitalWrite(motorBpwm, LOW);
-  ////digitalWrite(motorCpwm, HIGH);
-  ////digitalWrite(motorDpwm, HIGH);
-  ////digitalWrite(motorAdir, HIGH);
-  ////digitalWrite(motorBdir, HIGH);
-  ////digitalWrite(motorCdir, LOW);
-  ////digitalWrite(motorDdir, LOW);
-  //    Serial.println("Right");
-  //  }
-  //  if(pidOutput < 0){
-  ////digitalWrite(motorApwm, HIGH);
-  ////digitalWrite(motorBpwm, HIGH);
-  ////digitalWrite(motorCpwm, LOW);
-  ////digitalWrite(motorDpwm, LOW);
-  ////digitalWrite(motorAdir, LOW);
-  ////digitalWrite(motorBdir, LOW);
-  ////digitalWrite(motorCdir, HIGH);
-  ////digitalWrite(motorDdir, HIGH);
-  //    Serial.println("left");
-  //  }
+
   analogWrite(motorApwm, leftMotorSpeed);
   analogWrite(motorBpwm, leftMotorSpeed);
   analogWrite(motorCpwm, rightMotorSpeed);
