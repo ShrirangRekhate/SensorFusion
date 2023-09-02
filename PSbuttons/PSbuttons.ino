@@ -4,21 +4,21 @@
 
 void setup() {
   Serial.begin(115200);
-  ps5.begin("D0:BC:C1:98:2E:F3"); //replace 
+  ps5.begin("D0:BC:C1:98:2E:F3"); //replace
   Serial.println("Ready.");
 }
 
 void loop() {
-  if (ps5.isConnected()==false)  { 
+  if (ps5.isConnected() == false)  {
     Serial.println("PS5 controller not found");
     delay(300);
 
 
 
-    }
+  }
 
 
-  while(ps5.isConnected() == true) {
+  while (ps5.isConnected() == true) {
     if (ps5.Right()) Serial.println("Right Button");
     if (ps5.Down()) Serial.println("Down Button");
     if (ps5.Up()) Serial.println("Up Button");
@@ -65,11 +65,11 @@ void loop() {
       Serial.printf("Right Stick y at %d\n", ps5.RStickY());
     }
 
-    if (ps5.Charging()) Serial.println("The controller is charging"); //doesn't work
-    if (ps5.Audio()) Serial.println("The controller has headphones attached"); //doesn't work
-    if (ps5.Mic()) Serial.println("The controller has a mic attached"); //doesn't work
-
-    Serial.printf("Battery Level : %d\n", ps5.Battery()); //doesn't work
+    //    if (ps5.Charging()) Serial.println("The controller is charging"); //doesn't work
+    //    if (ps5.Audio()) Serial.println("The controller has headphones attached"); //doesn't work
+    //    if (ps5.Mic()) Serial.println("The controller has a mic attached"); //doesn't work
+    //
+    //    Serial.printf("Battery Level : %d\n", ps5.Battery()); //doesn't work
 
     Serial.println();
 
