@@ -148,19 +148,19 @@ void loop() {
       }
 
       if (ps5.LStickX()) {
-        if (ps5.LStickX() > 30) {
+        if (ps5.LStickX() > 50) {
           right();
         }
-        if (ps5.LStickX() < -30) {
+        if (ps5.LStickX() < -50) {
           left();
         }
         Serial.printf("Left Stick x at %d\n", ps5.LStickX());
       }
       if (ps5.LStickY()) {
-        if (ps5.LStickY() > 30) {
+        if (ps5.LStickY() > 50) {
           forward();
         }
-        if (ps5.LStickY() < -30) {
+        if (ps5.LStickY() < -50) {
           backward();
         }
         Serial.printf("Left Stick y at %d\n", ps5.LStickY());
@@ -237,6 +237,12 @@ void backward()
 }
 void left()
 {
+  angle = 0;
+  Wire.begin();
+  mpu6050.begin();
+  mpu6050.calcGyroOffsets(true);
+  mpu6050.update();
+  float angle = mpu6050.getAngleZ();
   digitalWrite(motorApwm, HIGH);
   digitalWrite(motorBpwm, HIGH);
   digitalWrite(motorCpwm, LOW);
@@ -253,6 +259,12 @@ void left()
 }
 void right()
 {
+  angle = 0;
+  Wire.begin();
+  mpu6050.begin();
+  mpu6050.calcGyroOffsets(true);
+  mpu6050.update();
+  float angle = mpu6050.getAngleZ();
   digitalWrite(motorApwm, LOW);
   digitalWrite(motorBpwm, LOW);
   digitalWrite(motorCpwm, HIGH);
@@ -360,8 +372,8 @@ void buttondown()
 ////////////////   PID   \\\\\\\\\\\\\\\\\\\\\
 
 void motorspeed(float pidOutput) {
-  leftMotorSpeed = constrain((basespeed + Speed) + 3 * pidOutput, 0, 255);
-  rightMotorSpeed = constrain((basespeed + Speed) - 3 * pidOutput, 0, 255);
+  leftMotorSpeed = constrain((basespeed + Speed) +  pidOutput, 0, 255);
+  rightMotorSpeed = constrain((basespeed + Speed) -  pidOutput, 0, 255);
 
   analogWrite(motorApwm, leftMotorSpeed);
   analogWrite(motorBpwm, leftMotorSpeed);
