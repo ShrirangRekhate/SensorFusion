@@ -14,8 +14,8 @@ const int motorDpwm = 18; //right
 const int motorDdir = 19;
 float Speed = 0.0;
 float leftMotorSpeed = 0.0;
-float rightMotorSpeed = 0.0;
-
+float rightMotorSpeed = 0  ;
+float angle = 0;
 ////  MOTOR ADJUSTMENT END \\\\
 
 MPU6050 mpu6050(Wire);
@@ -55,12 +55,12 @@ void loop() {
     Serial.println("PS5 controller not found");
     delay(300);
   }
-
+  int my_angle = 0;
 
   ////////////////////////    PS5 FUNCTIONS         /////////////////////////////////////////
   while (ps5.isConnected() == true) {
     mpu6050.update();
-    float angle = mpu6050.getAngleZ();
+    float angle = my_angle + mpu6050.getAngleZ();
     if (millis() - timer > 300) {
       Serial.print("\tangleZ : ");
       Serial.print(angle);
@@ -98,18 +98,17 @@ void loop() {
         Serial.println("Left Button");
       }
       if (ps5.Square()) {
-        if (millis() - timer > 900)
-          Speed = 80;
-        error = 90;
-        pid();
-        timer = millis();
+        my_angle = 90;
+        Serial.println("Square Button");
       }
-      Speed = 0;
-      Serial.println("Square Button");
-
-
-      //      if (ps5.Cross()) Serial.println("Cross Button");
-      //      if (ps5.Circle()) Serial.println("Circle Button");
+      if (ps5.Cross()) {
+        my_angle = 0;
+        Serial.println("Cross Button");
+      }
+      if (ps5.Circle()) {
+        my_angle = -90;
+        Serial.println("Circle Button");
+      }
       //      if (ps5.Triangle()) Serial.println("Triangle Button");
 
       //      if (ps5.UpRight()) {
@@ -165,17 +164,24 @@ void loop() {
         }
         Serial.printf("Left Stick y at %d\n", ps5.LStickY());
       }
-      //      if (ps5.RStickX()) {
-      //        Serial.printf("Right Stick x at %d\n", ps5.RStickX());
-      //      }
-      //      if (ps5.RStickY()) {
-      //        //        basespeed = ps5.RStickY();
-      //        Serial.printf("Right Stick y at %d\n", ps5.RStickY());
-      //      }
+      if (ps5.RStickX()) {
+        if (ps5.LStickX() > 50) {
+          my_angle=10;
+        }
+        if (ps5.LStickX() < -50) {
+          my_angle=-10;
+        }
+        Serial.printf("Right Stick x at %d\n", ps5.RStickX());
+      }
+      //            if (ps5.RStickY()) {
+      //              my_angle=-10;
+      //              Serial.printf("Right Stick y at %d\n", ps5.RStickY());
+      //            }
 
       Serial.println();
       timer = millis();
     }
+    Speed = 0;
   }
 }
 
@@ -202,7 +208,7 @@ void pid() {
 }
 ////////MOTOR FUNCTIONS\\\\\\\\\\\\\\\\\
 
-void forward()
+void backward()
 {
   digitalWrite(motorApwm, HIGH);
   digitalWrite(motorBpwm, HIGH);
@@ -216,10 +222,10 @@ void forward()
   analogWrite(motorBpwm, leftMotorSpeed);
   analogWrite(motorCpwm, rightMotorSpeed);
   analogWrite(motorDpwm, rightMotorSpeed);
-  Serial.println("Forward");
+  Serial.println("backward");
 }
 
-void backward()
+void forward()
 {
   digitalWrite(motorApwm, LOW);
   digitalWrite(motorBpwm, LOW);
@@ -238,9 +244,6 @@ void backward()
 void left()
 {
   angle = 0;
-  Wire.begin();
-  mpu6050.begin();
-  mpu6050.calcGyroOffsets(true);
   mpu6050.update();
   float angle = mpu6050.getAngleZ();
   digitalWrite(motorApwm, HIGH);
@@ -260,9 +263,6 @@ void left()
 void right()
 {
   angle = 0;
-  Wire.begin();
-  mpu6050.begin();
-  mpu6050.calcGyroOffsets(true);
   mpu6050.update();
   float angle = mpu6050.getAngleZ();
   digitalWrite(motorApwm, LOW);
@@ -298,13 +298,13 @@ void stop()
 }
 
 void buttonRight() {
-  digitalWrite(motorApwm, HIGH);
+  digitalWrite(motorApwm, LOW);
   digitalWrite(motorBpwm, HIGH);
-  digitalWrite(motorCpwm, LOW);
+  digitalWrite(motorCpwm, HIGH);
   digitalWrite(motorDpwm, LOW);
-  digitalWrite(motorAdir, LOW);
+  digitalWrite(motorAdir, HIGH);
   digitalWrite(motorBdir, LOW);
-  digitalWrite(motorCdir, HIGH);
+  digitalWrite(motorCdir, LOW);
   digitalWrite(motorDdir, HIGH);
   analogWrite(motorApwm, 100);
   analogWrite(motorBpwm, 100);
@@ -314,13 +314,13 @@ void buttonRight() {
 }
 
 void buttonLeft() {
-  digitalWrite(motorApwm, LOW);
+  digitalWrite(motorApwm, HIGH);
   digitalWrite(motorBpwm, LOW);
-  digitalWrite(motorCpwm, HIGH);
+  digitalWrite(motorCpwm, LOW);
   digitalWrite(motorDpwm, HIGH);
-  digitalWrite(motorAdir, HIGH);
+  digitalWrite(motorAdir, LOW);
   digitalWrite(motorBdir, HIGH);
-  digitalWrite(motorCdir, LOW);
+  digitalWrite(motorCdir, HIGH);
   digitalWrite(motorDdir, LOW);
   analogWrite(motorApwm, 100);
   analogWrite(motorBpwm, 100);
@@ -343,7 +343,7 @@ void buttonup()
   analogWrite(motorBpwm, 100);
   analogWrite(motorCpwm, 100);
   analogWrite(motorDpwm, 100);
-  Serial.println("Forward");
+  Serial.println("forward");
 }
 
 void buttondown()
@@ -360,7 +360,7 @@ void buttondown()
   analogWrite(motorBpwm, 100);
   analogWrite(motorCpwm, 100);
   analogWrite(motorDpwm, 100);
-  Serial.println("Back");
+  Serial.println("Backward");
 }
 
 
@@ -374,7 +374,7 @@ void buttondown()
 void motorspeed(float pidOutput) {
   leftMotorSpeed = constrain((basespeed + Speed) +  pidOutput, 0, 255);
   rightMotorSpeed = constrain((basespeed + Speed) -  pidOutput, 0, 255);
-
+  Serial.print(leftMotorSpeed); Serial.print("\t"); Serial.println(rightMotorSpeed);
   analogWrite(motorApwm, leftMotorSpeed);
   analogWrite(motorBpwm, leftMotorSpeed);
   analogWrite(motorCpwm, rightMotorSpeed);
